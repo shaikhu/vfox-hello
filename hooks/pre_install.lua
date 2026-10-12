@@ -1,39 +1,22 @@
---- Returns some pre-installed information, such as version number, download address, local files, etc.
---- If checksum is provided, vfox will automatically check it for you.
+--- Return the version to install.
+--- No `url` is returned, so vfox creates the installation directory and
+--- downloads nothing. PostInstall then provides the entire payload.
 --- @param ctx table
 --- @field ctx.version string User-input version
 --- @return table Version information
 function PLUGIN:PreInstall(ctx)
-    local version = ctx.version
-    return {
-        --- Version number
-        version = "xxx",
-        --- remote URL or local file path [optional]
-        url = "xxx",
-        --- SHA256 checksum [optional]
-        sha256 = "xxx",
-        --- md5 checksum [optional]
-        md5 = "xxx",
-        --- sha1 checksum [optional]
-        sha1 = "xxx",
-        --- sha512 checksum [optional]
-        sha512 = "xx",
-        --- additional need files [optional]
-        addition = {
-            {
-                --- additional file name !
-                name = "xxx",
-                --- remote URL or local file path [optional]
-                url = "xxx",
-                --- SHA256 checksum [optional]
-                sha256 = "xxx",
-                --- md5 checksum [optional]
-                md5 = "xxx",
-                --- sha1 checksum [optional]
-                sha1 = "xxx",
-                --- sha512 checksum [optional]
-                sha512 = "xx",
-            },
-        },
-    }
+    local requested = ctx.version
+    local available = self:Available({})
+
+    if requested == "latest" then
+        return { version = available[1].version }
+    end
+
+    for _, candidate in ipairs(available) do
+        if candidate.version == requested then
+            return { version = requested }
+        end
+    end
+
+    error("version " .. tostring(requested) .. " is not available")
 end

@@ -1,66 +1,64 @@
-# vfox-plugin-template
+# vfox-plugin (hello)
 
-A [vfox plugin](https://vfox.dev/plugins/create/howto.html) template with shared
-validation and publishing workflows.
+A minimal [vfox](https://vfox.dev) plugin. It installs a single `hello` command that prints a greeting.
 
-## Usage
+## Layout
 
-1. [Generate a repository](https://github.com/version-fox/vfox-plugin-template/generate)
-   from this template.
-2. Configure the plugin name, homepage, description and other fields in
-   [metadata.lua](metadata.lua). Set `PLUGIN.manifestUrl` to your own repository's
-   `releases/download/manifest/manifest.json` address, or remove it if your plugin
-   will be distributed through the global registry.
-3. Implement the hooks using the [plugin development guide](https://vfox.dev/plugins/create/howto.html).
+```
+metadata.lua              plugin name, version, homepage, license, description
+hooks/available.lua       which versions exist          (required)
+hooks/pre_install.lua     what to install               (required)
+hooks/env_keys.lua        what goes on PATH             (required)
+hooks/post_install.lua    writes bin/hello              (optional)
+```
 
-Keep runtime resources under `lib/`. Shared checks validate metadata, required hook
-files and Lua syntax and build the same package used for publishing. They do not
-run lifecycle hooks or install SDKs. See the [package contract](https://github.com/version-fox/plugin-manifest-action#插件包与检查范围).
-
-## Lua checks and formatting
-
-Use [StyLua 2.5.2](https://github.com/JohnnyMorganz/StyLua/releases/tag/v2.5.2)
-with the included `stylua.toml` configuration:
+## Try it
 
 ```shell
-stylua .
-stylua --check .
+vfox add --source /path/to/this/repo
+vfox available hello
+vfox install hello@1.0.0
+vfox use hello@1.0.0
+hello
 ```
 
-The shared PR check validates metadata, required hooks and Lua 5.1 syntax.
-Repositories with `stylua.toml` also receive a read-only format check after the
-shared tool release containing that check is published. Existing plugins can opt
-in by adding this configuration and formatting their Lua files together.
-Plugin behavior tests remain separate from syntax and style checks.
+Expected output:
 
-## Publish a plugin
-
-Merge your changes into the default branch, then open **Actions → Plugin → Run
-workflow**. Select the default branch and enter a stable version such as `0.1.0`,
-without `v`. The workflow updates `PLUGIN.version`, commits the change, creates the
-tag, packages the plugin and publishes its Release and manifest.
-
-You can also use GitHub CLI:
-
-```bash
-gh workflow run publish.yaml --repo OWNER/REPOSITORY --ref main -f version=0.1.0
+```
+Hello, World! (hello 1.0.0)
 ```
 
-Version-tag pushes remain supported if `metadata.lua` already contains the matching
-version. Pull requests only run checks; their titles do not publish releases.
-Prerelease version strings are not supported by this initial stable-release flow.
+## Publishing
 
-If publication fails, use **Re-run failed jobs** on the original run. Existing
-version assets are verified rather than overwritten.
+Releases are produced by the shared workflow in
+[.github/workflows/publish.yaml](.github/workflows/publish.yaml).
 
-## Shared workflow updates
+```shell
+gh workflow run publish.yaml --repo shaikhu/vfox-plugin --ref main -f version=1.0.0
+```
 
-The caller in [.github/workflows/publish.yaml](.github/workflows/publish.yaml)
-references `version-fox/plugin-manifest-action` at `@v1`. Compatible release-tool
-updates apply on the next workflow run. Updating that shared tool does not publish
-this plugin. No Dependabot configuration or extra release token is required for
-this workflow; repository rules must allow its bot to push version commits/tags.
+That bumps `PLUGIN.version`, commits it, tags `vX.Y.Z`, packages the plugin zip and
+publishes a release alongside a `manifest.json`. A second, permanent `manifest` tag
+holds the current `manifest.json`, whose `downloadUrl` points at the versioned zip —
+that manifest URL is the stable address other tooling consumes.
 
-The shared `v1` tag must exist before this caller is enabled. See the
-[shared release workflow documentation](https://github.com/version-fox/plugin-manifest-action)
-for first-rollout instructions, validation boundaries and failure recovery.
+Installing straight from a published release:
+
+```shell
+vfox add --source https://github.com/shaikhu/vfox-plugin/releases/download/v1.0.0/vfox-plugin-1.0.0.zip
+```
+
+## Registry submission
+
+Listing in the public registry, which enables the shorter `vfox add hello`, is a
+separate one-time pull request to
+[version-fox/vfox-plugins](https://github.com/version-fox/vfox-plugins) adding a
+`sources/hello.json` pointer:
+
+```json
+{
+  "name": "hello",
+  "manifestUrl": "https://github.com/shaikhu/vfox-plugin/releases/download/manifest/manifest.json",
+  "test": { "version": "1.0.0", "check": "hello", "resultRegx": "Hello, World!" }
+}
+```

@@ -1,12 +1,24 @@
---- Extension point, called after PreInstall, can perform additional operations,
---- such as file operations for the SDK installation directory or compile source code
---- Currently can be left unimplemented!
+--- Write the `hello` command into the freshly created installation directory.
+--- PreInstall downloads nothing, so this hook supplies the whole payload.
+--- @param ctx table Context information
+--- @field ctx.rootPath string Installation root directory
 function PLUGIN:PostInstall(ctx)
-    --- ctx.rootPath SDK installation directory
-    local rootPath = ctx.rootPath
-    local sdkInfo = ctx.sdkInfo["sdk-name"]
-    local path = sdkInfo.path
-    local version = sdkInfo.version
-    local name = sdkInfo.name
-    local note = sdkInfo.note
+    local sdkInfo = ctx.sdkInfo[self.name]
+    local bin = sdkInfo.path .. "/bin"
+    local greeting = "Hello, World! (" .. self.name .. " " .. sdkInfo.version .. ")"
+
+    if RUNTIME.osType == "windows" then
+        os.execute('mkdir "' .. bin .. '"')
+        local script = assert(io.open(bin .. "/hello.cmd", "w"))
+        script:write("@echo off\r\n")
+        script:write("echo " .. greeting .. "\r\n")
+        script:close()
+    else
+        os.execute('mkdir -p "' .. bin .. '"')
+        local script = assert(io.open(bin .. "/hello", "w"))
+        script:write("#!/bin/sh\n")
+        script:write("echo '" .. greeting .. "'\n")
+        script:close()
+        os.execute('chmod 755 "' .. bin .. '/hello"')
+    end
 end
