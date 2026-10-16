@@ -1,4 +1,4 @@
-# vfox-plugin (hello)
+# vfox-hello
 
 A minimal [vfox](https://vfox.dev) plugin. It installs a single `hello` command that prints a greeting.
 
@@ -12,20 +12,35 @@ hooks/env_keys.lua        what goes on PATH             (required)
 hooks/post_install.lua    writes bin/hello              (optional)
 ```
 
+## Versions
+
+`available.lua` returns `PLUGIN.version`, so the release tag, the plugin version
+and the installable tool version are always the same number. Only the current
+version is installable.
+
+That is specific to this plugin: it has no upstream, and `post_install.lua`
+generates the payload, so the plugin *is* the tool. Real plugins keep the two
+independent — `vfox-nodejs` at 0.5.0 serves every Node.js release, because its
+`available.lua` queries the upstream index. Do not copy the coupling.
+
 ## Try it
 
+vfox only accepts a `.zip` or a single `.lua`, not a directory, so package it
+first:
+
 ```shell
-vfox add --source /path/to/this/repo
-vfox available hello
-vfox install hello@1.0.0
-vfox use hello@1.0.0
+zip -r /tmp/vfox-hello.zip metadata.lua hooks LICENSE
+vfox add --source /tmp/vfox-hello.zip
+vfox search hello
+vfox install hello@0.1.0
+vfox use hello@0.1.0
 hello
 ```
 
 Expected output:
 
 ```
-Hello, World! (hello 1.0.0)
+Hello, World! (hello 0.1.0)
 ```
 
 ## Publishing
@@ -34,7 +49,7 @@ Releases are produced by the shared workflow in
 [.github/workflows/publish.yaml](.github/workflows/publish.yaml).
 
 ```shell
-gh workflow run publish.yaml --repo shaikhu/vfox-plugin --ref main -f version=1.0.0
+gh workflow run publish.yaml --repo shaikhu/vfox-hello --ref main -f version=0.1.0
 ```
 
 That bumps `PLUGIN.version`, commits it, tags `vX.Y.Z`, packages the plugin zip and
@@ -45,7 +60,7 @@ that manifest URL is the stable address other tooling consumes.
 Installing straight from a published release:
 
 ```shell
-vfox add --source https://github.com/shaikhu/vfox-plugin/releases/download/v1.0.0/vfox-plugin-1.0.0.zip
+vfox add --source https://github.com/shaikhu/vfox-hello/releases/download/v0.1.0/vfox-hello-0.1.0.zip
 ```
 
 ## Registry submission
@@ -58,7 +73,7 @@ separate one-time pull request to
 ```json
 {
   "name": "hello",
-  "manifestUrl": "https://github.com/shaikhu/vfox-plugin/releases/download/manifest/manifest.json",
-  "test": { "version": "1.0.0", "check": "hello", "resultRegx": "Hello, World!" }
+  "manifestUrl": "https://github.com/shaikhu/vfox-hello/releases/download/manifest/manifest.json",
+  "test": { "version": "0.1.0", "check": "hello", "resultRegx": "Hello, World!" }
 }
 ```

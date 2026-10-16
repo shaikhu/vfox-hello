@@ -7,7 +7,7 @@ PLUGIN.name = "hello"
 --- Plugin version
 PLUGIN.version = "0.1.0"
 --- Plugin homepage
-PLUGIN.homepage = "https://github.com/shaikhu/vfox-plugin"
+PLUGIN.homepage = "https://github.com/shaikhu/vfox-hello"
 --- Plugin license
 PLUGIN.license = "Apache 2.0"
 --- Plugin description
