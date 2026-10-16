@@ -30,6 +30,10 @@ They are independent. This plugin is at `0.2.0` and offers the tool at `1.0.0`,
 `1.1.0` and `2.0.0`; `vfox install hello@0.2.0` is correctly rejected, because
 `0.2.0` is not a version of the *tool*.
 
+[VERSIONING.md](VERSIONING.md) works through this in detail, with commands to
+verify each step and notes on what it means for generating plugins from a
+release tool.
+
 The same holds upstream: `vfox-nodejs` at plugin version 0.5.0 serves every
 Node.js release, because its `available.lua` queries the Node.js dist index over
 HTTP. A real plugin never hardcodes versions — it reports what upstream says.
