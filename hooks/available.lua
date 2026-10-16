@@ -1,21 +1,23 @@
+local util = require("util")
+
 --- Return all available versions provided by this plugin.
 ---
---- A real plugin queries an upstream index here and returns whatever versions
---- that reports, independently of PLUGIN.version — see vfox-nodejs, whose
---- plugin version is unrelated to the Node.js versions it serves.
----
---- This plugin has no upstream: PostInstall generates the payload, so the
---- plugin *is* the tool. The installable version is therefore taken straight
---- from PLUGIN.version rather than repeated as a literal, which keeps the
---- release, the plugin and the tool version from drifting apart.
+--- A real plugin queries an upstream index here and returns whatever it
+--- reports, independently of PLUGIN.version -- vfox-nodejs at plugin version
+--- 0.5.0 serves every Node.js release. This plugin has no upstream, so the
+--- list lives in lib/util.lua, but it is still the TOOL's versions and has
+--- nothing to do with the plugin's own version.
 ---
 --- @param ctx table Empty table used as context, for future extension
 --- @return table Descriptions of available versions
 function PLUGIN:Available(ctx)
-    return {
-        {
-            version = PLUGIN.version,
-            note = "latest",
-        },
-    }
+    local result = {}
+    for _, v in ipairs(util.versions) do
+        table.insert(result, {
+            version = v.version,
+            note = v.note,
+        })
+    end
+    table.sort(result, util.compare_versions)
+    return result
 end
